@@ -1,4 +1,4 @@
-from exceptions import InvalidStyleError
+from .exceptions import InvalidStyleError
 
 
 _STYLES_CONVERSION = {

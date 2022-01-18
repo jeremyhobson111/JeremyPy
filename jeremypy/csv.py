@@ -1,7 +1,7 @@
 import os
 import csv
 
-from exceptions import CSVFileNotFoundError
+from .exceptions import CSVFileNotFoundError
 
 
 def read_csv(path, headers=False, create_if_missing=True):
