@@ -100,22 +100,25 @@ class MessengerDriver(JeremyDriver):
             message_groups = self.driver.find_elements(By.XPATH, '//div[@role="gridcell" and (div//span/div/div['
                                                                  '1]/div/div or div//span/div/div/div/span)]')
             for group in message_groups:
-                try:
-                    person_element = group.find_element(By.XPATH, 'h4//div[@data-testid="mw_message_sender_name"]')
-                except NoSuchElementException:
-                    person_element = group.find_element(By.XPATH, 'h4/span')
-                person = person_element.text
-                try:  # Message with text
-                    message_element = group.find_element(By.XPATH, 'div//span/div/div/div/div')
-                    try:  # Message with text and emojis
-                        message_element.find_element(By.TAG_NAME, 'span')
+                try:  # Failsafe TODO - replies to messages
+                    try:
+                        person_element = group.find_element(By.XPATH, 'h4//div[@data-testid="mw_message_sender_name"]')
+                    except NoSuchElementException:
+                        person_element = group.find_element(By.XPATH, 'h4/span')
+                    person = person_element.text
+                    try:  # Message with text
+                        message_element = group.find_element(By.XPATH, 'div//span/div/div/div/div')
+                        try:  # Message with text and emojis
+                            message_element.find_element(By.TAG_NAME, 'span')
+                            message = self.get_message_with_emojis(message_element)
+                        except NoSuchElementException:  # Message with only text
+                            message = message_element.text
+                    except NoSuchElementException:  # Only emojis
+                        message_element = group.find_element(By.XPATH, 'div//span/div/div/div')
                         message = self.get_message_with_emojis(message_element)
-                    except NoSuchElementException:  # Message with only text
-                        message = message_element.text
-                except NoSuchElementException:  # Only emojis
-                    message_element = group.find_element(By.XPATH, 'div//span/div/div/div')
-                    message = self.get_message_with_emojis(message_element)
-                messages.append((person, message))
+                    messages.append((person, message))
+                except Exception as e:
+                    pass
             if initial:
                 self.message_cache = messages
                 return self.message_cache
@@ -235,6 +238,7 @@ class MessengerDriver(JeremyDriver):
                 for sender, message in new_messages:
                     if self.new_message_event(sender, message):
                         return
+                self.last_error = None
             except Exception as e:
                 if self.last_error == str(e):
                     if self.duplicate_exception_event(e):
