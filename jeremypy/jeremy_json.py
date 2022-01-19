@@ -1,7 +1,7 @@
 import os
 import json
 
-from .exceptions import JSONFileNotFoundError
+from jeremypy.jeremy_exceptions import JSONFileNotFoundError
 
 
 def read_json(path, create_if_missing=True):

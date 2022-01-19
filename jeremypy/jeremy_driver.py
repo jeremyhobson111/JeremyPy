@@ -269,3 +269,7 @@ def _extract_message_from_inner_html(text):
         elif match.startswith('alt'):
             result += match[5:-1]
     return result
+
+
+if __name__ == "__main__":
+    driver = JeremyDriver()

@@ -1,7 +1,7 @@
 import os
 import csv
 
-from .exceptions import CSVFileNotFoundError
+from jeremypy.jeremy_exceptions import CSVFileNotFoundError
 
 
 def read_csv(path, headers=False, create_if_missing=True):

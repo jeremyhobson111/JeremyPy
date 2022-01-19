@@ -1,4 +1,4 @@
-from .exceptions import InvalidStyleError
+from jeremypy.jeremy_exceptions import InvalidStyleError
 
 
 _STYLES_CONVERSION = {
