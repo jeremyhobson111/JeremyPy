@@ -293,4 +293,6 @@ def _extract_message_from_inner_html(text):
 
 
 if __name__ == "__main__":
-    driver = JeremyDriver()
+    # driver = JeremyDriver()
+    m = MessengerDriver(config=r"C:\Discord\config.txt")
+    m.go_to_chat()
