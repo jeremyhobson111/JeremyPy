@@ -26,3 +26,12 @@ class InvalidStyleError(Exception):
 
     def __str__(self):
         return f'{self.message}: {self.style}'
+
+
+class InvalidConfigError(Exception):
+    def __init__(self, message="Invalid config"):
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f'{self.message}'
