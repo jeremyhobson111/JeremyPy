@@ -13,6 +13,9 @@ from selenium.common.exceptions import (ElementClickInterceptedException,
                                         StaleElementReferenceException, NoSuchElementException)
 import pyperclip
 
+from jeremypy.jeremy_config import JeremyConfig
+from jeremypy.jeremy_exceptions import InvalidConfigError
+
 
 class JeremyDriver:
     def __init__(self, profile_path=None, headless=False, version=None):
@@ -49,15 +52,29 @@ class JeremyDriver:
         return self.driver.find_element(By.XPATH, f'//*[@aria-label="{aria_label}"]')
 
 
-# noinspection SpellCheckingInspection
 class MessengerDriver(JeremyDriver):
-    def __init__(self, chat, account=None, profile_path=None, headless=False, version=None):
-        self.chat = chat
-        if account:
+    def __init__(self, config=None, chat=None, account=None, profile_path=None, headless=False, version=None):
+        if config:
+            self.config = JeremyConfig(config)
+            chat = self.config.get("MessengerBot", "CHAT")
+            if chat:
+                self.chat = chat
+                self.account = (self.config.get("MessengerBot", "EMAIL"),
+                                self.config.get("MessengerBot", "PASS"))
+                self.profile_path = self.config.get("MessengerBot", "PROFILE_PATH")
+                self.headless = self.config.get("MessengerBot", "HEADLESS", boolean=True)
+            else:
+                raise InvalidConfigError
+        else:
+            if not chat:
+                raise Exception("MessengerDriver needs either valid config filename OR chat parameter")
+            self.chat = chat
             self.account = account
+            self.profile_path = profile_path
+            self.headless = headless
         self.message_cache = []
         self.last_error = None
-        super().__init__(profile_path=profile_path, headless=headless, version=version)
+        super().__init__(profile_path=self.profile_path, headless=self.headless, version=version)
 
     def login(self):
         """Runs login routine."""
