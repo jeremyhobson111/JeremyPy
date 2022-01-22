@@ -120,6 +120,8 @@ class MessengerDriver(JeremyDriver):
                 person_elements = group.find_elements(By.XPATH, 'h4//div[@data-testid="mw_message_sender_name"]')
                 if len(person_elements) == 0:  # Message does not have sender's name above it
                     person_elements = group.find_elements(By.XPATH, 'span')
+                if len(person_elements) == 0:  # Message is outgoing
+                    person_elements = group.find_elements(By.XPATH, 'h4/span')
                 if len(person_elements) == 0:  # Message is a reply to another message
                     person_elements = group.find_elements(By.XPATH, 'h4/div/div/div/div')
                 person = person_elements[0].text
