@@ -53,4 +53,4 @@ docs/_build/
 .idea/
 
 # Testing
-test.py
+tests/
