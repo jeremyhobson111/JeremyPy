@@ -117,25 +117,22 @@ class MessengerDriver(JeremyDriver):
             message_groups = self.driver.find_elements(By.XPATH, '//div[@role="gridcell" and (div//span/div/div['
                                                                  '1]/div/div or div//span/div/div/div/span)]')
             for group in message_groups:
-                try:  # Failsafe TODO - replies to messages
-                    try:
-                        person_element = group.find_element(By.XPATH, 'h4//div[@data-testid="mw_message_sender_name"]')
-                    except NoSuchElementException:
-                        person_element = group.find_element(By.XPATH, 'h4/span')
-                    person = person_element.text
-                    try:  # Message with text
-                        message_element = group.find_element(By.XPATH, 'div//span/div/div/div/div')
-                        try:  # Message with text and emojis
-                            message_element.find_element(By.TAG_NAME, 'span')
-                            message = self.get_message_with_emojis(message_element)
-                        except NoSuchElementException:  # Message with only text
-                            message = message_element.text
-                    except NoSuchElementException:  # Only emojis
-                        message_element = group.find_element(By.XPATH, 'div//span/div/div/div')
-                        message = self.get_message_with_emojis(message_element)
-                    messages.append((person, message))
-                except Exception as e:
-                    pass
+                person_elements = group.find_elements(By.XPATH, 'h4//div[@data-testid="mw_message_sender_name"]')
+                if len(person_elements) == 0:  # Message does not have sender's name above it
+                    person_elements = group.find_elements(By.XPATH, 'span')
+                if len(person_elements) == 0:  # Message is a reply to another message
+                    person_elements = group.find_elements(By.XPATH, 'h4/div/div/div/div')
+                person = person_elements[0].text
+                message_elements = group.find_elements(By.XPATH, 'div//span/div/div/div/div')
+                if len(message_elements) > 0:  # Has text or is a thumbs up
+                    if len(message_elements[0].find_elements(By.TAG_NAME, 'span')) > 0:  # Has text and emojis
+                        message = self.get_message_with_emojis(message_elements[0])
+                    else:  # Only has text or a thumbs up
+                        message = message_elements[0].text
+                else:  # Only emojis
+                    message_element = group.find_element(By.XPATH, 'div//span/div/div/div')
+                    message = self.get_message_with_emojis(message_element)
+                messages.append((person, message))
             if initial:
                 self.message_cache = messages
                 return self.message_cache

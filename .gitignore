@@ -51,3 +51,6 @@ docs/_build/
 
 # Pycharm stuff
 .idea/
+
+# Testing
+test.py
