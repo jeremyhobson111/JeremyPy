@@ -117,24 +117,27 @@ class MessengerDriver(JeremyDriver):
             message_groups = self.driver.find_elements(By.XPATH, '//div[@role="gridcell" and (div//span/div/div['
                                                                  '1]/div/div or div//span/div/div/div/span)]')
             for group in message_groups:
-                person_elements = group.find_elements(By.XPATH, 'h4//div[@data-testid="mw_message_sender_name"]')
-                if len(person_elements) == 0:  # Message does not have sender's name above it
-                    person_elements = group.find_elements(By.XPATH, 'span')
-                if len(person_elements) == 0:  # Message is outgoing
-                    person_elements = group.find_elements(By.XPATH, 'h4/span')
-                if len(person_elements) == 0:  # Message is a reply to another message
-                    person_elements = group.find_elements(By.XPATH, 'h4/div/div/div/div')
-                person = person_elements[0].text
-                message_elements = group.find_elements(By.XPATH, 'div//span/div/div/div/div')
-                if len(message_elements) > 0:  # Has text or is a thumbs up
-                    if len(message_elements[0].find_elements(By.TAG_NAME, 'span')) > 0:  # Has text and emojis
-                        message = self.get_message_with_emojis(message_elements[0])
-                    else:  # Only has text or a thumbs up
-                        message = message_elements[0].text
-                else:  # Only emojis
-                    message_element = group.find_element(By.XPATH, 'div//span/div/div/div')
-                    message = self.get_message_with_emojis(message_element)
-                messages.append((person, message))
+                try:
+                    person_elements = group.find_elements(By.XPATH, 'h4//div[@data-testid="mw_message_sender_name"]')
+                    if len(person_elements) == 0:  # Message does not have sender's name above it
+                        person_elements = group.find_elements(By.XPATH, 'span')
+                    if len(person_elements) == 0:  # Message is outgoing
+                        person_elements = group.find_elements(By.XPATH, 'h4/span')
+                    if len(person_elements) == 0:  # Message is a reply to another message
+                        person_elements = group.find_elements(By.XPATH, 'h4/div/div/div/div')
+                    person = person_elements[0].text
+                    message_elements = group.find_elements(By.XPATH, 'div//span/div/div/div/div')
+                    if len(message_elements) > 0:  # Has text or is a thumbs up
+                        if len(message_elements[0].find_elements(By.TAG_NAME, 'span')) > 0:  # Has text and emojis
+                            message = self.get_message_with_emojis(message_elements[0])
+                        else:  # Only has text or a thumbs up
+                            message = message_elements[0].text
+                    else:  # Only emojis
+                        message_element = group.find_element(By.XPATH, 'div//span/div/div/div')
+                        message = self.get_message_with_emojis(message_element)
+                    messages.append((person, message))
+                except NoSuchElementException as e:  # Someone removed a message
+                    pass
             if initial:
                 self.message_cache = messages
                 return self.message_cache
@@ -144,8 +147,8 @@ class MessengerDriver(JeremyDriver):
                 self.message_cache = messages
                 if new_messages:
                     return new_messages
-        except (StaleElementReferenceException, IndexError) as e:
-            print("Stale Element")
+        except (StaleElementReferenceException, IndexError) as e:  # Stale element
+            pass
         return []
 
     def wait_and_click_element_by_xpath(self, xpath, delay=10):
@@ -249,7 +252,7 @@ class MessengerDriver(JeremyDriver):
                 new_messages = self.get_messages()
                 if len(new_messages) == 0:
                     continue
-                if len(new_messages) > 5:  # In the case that all messages are wrongly considered new
+                if len(new_messages) > 3:  # In the case that all messages are wrongly considered new
                     continue
                 for sender, message in new_messages:
                     if self.new_message_event(sender, message):
