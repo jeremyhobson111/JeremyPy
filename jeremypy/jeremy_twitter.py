@@ -1,6 +1,6 @@
 from requests import get
 
-from jeremy_config import JeremyConfig
+from jeremypy.jeremy_config import JeremyConfig
 
 
 class JeremyTwitter:
