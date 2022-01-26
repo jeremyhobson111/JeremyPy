@@ -4,7 +4,7 @@ import configparser
 class JeremyConfig:
     def __init__(self, filepath):
         self.filepath = filepath
-        self.config = configparser.ConfigParser()
+        self.config = configparser.ConfigParser(interpolation=None)
         self.read_config()
 
     def read_config(self):
