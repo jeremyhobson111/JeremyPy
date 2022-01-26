@@ -3,6 +3,7 @@ import os
 import re
 import requests
 from time import sleep
+from urllib.request import urlopen
 
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
@@ -104,10 +105,15 @@ class MessengerDriver(JeremyDriver):
         if self.driver.current_url.startswith('https://www.messenger.com/login.php'):
             self.login()
 
-    def get_message_with_emojis(self, element):
-        """Gets message with emojis using innerHTML of element."""
+    def get_message_with_emojis_or_link(self, element):
+        """Gets message with emojis and/or link"""
         inner_html = element.get_attribute('innerHTML')
-        return _extract_message_from_inner_html(inner_html)
+        message = _extract_message_from_inner_html(inner_html)
+        link_elements = element.find_elements(By.XPATH, 'span/a')
+        if len(link_elements) > 0:  # Has link
+            link = link_elements[0].text
+            return {'message': message, 'link': link}
+        return message
 
     def get_messages(self, initial=False):
         """Finds all available messages sent by other users in chat that have not already been processed, and returns
@@ -128,13 +134,13 @@ class MessengerDriver(JeremyDriver):
                     person = person_elements[0].text
                     message_elements = group.find_elements(By.XPATH, 'div//span/div/div/div/div')
                     if len(message_elements) > 0:  # Has text or is a thumbs up
-                        if len(message_elements[0].find_elements(By.TAG_NAME, 'span')) > 0:  # Has text and emojis
-                            message = self.get_message_with_emojis(message_elements[0])
+                        if len(message_elements[0].find_elements(By.TAG_NAME, 'span')) > 0:  # Has text and emojis/link
+                            message = self.get_message_with_emojis_or_link(message_elements[0])
                         else:  # Only has text or a thumbs up
                             message = message_elements[0].text
                     else:  # Only emojis
                         message_element = group.find_element(By.XPATH, 'div//span/div/div/div')
-                        message = self.get_message_with_emojis(message_element)
+                        message = self.get_message_with_emojis_or_link(message_element)
                     messages.append((person, message))
                 except NoSuchElementException as e:  # Someone removed a message
                     pass
@@ -188,15 +194,15 @@ class MessengerDriver(JeremyDriver):
         """Downloads url to download path and automatically adds the extension. If no path is given,
         it downloads to tempfile_(datetime).(ext) in the current working directory.
         """
-        if '.jpg' in url:
-            thumbnail_extension = '.jpg'
-        else:
-            thumbnail_extension = os.path.splitext(url)[1]
+        request = urlopen(url)
+        mime = request.info()['Content-type']
+
+        thumbnail_extension = mime.split("/")[-1]
         r = requests.get(url)
         if not download_path:
             name = os.path.join(os.getcwd(), 'tempfile_'
                                 + datetime.datetime.now().strftime('%Y-%m-%d_%H.%M.%S'))
-        filename = download_path + thumbnail_extension
+        filename = f'{download_path}.{thumbnail_extension}'
         with open(filename, 'wb+') as fp:
             fp.write(r.content)
         return filename
@@ -215,6 +221,7 @@ class MessengerDriver(JeremyDriver):
 
     def new_message_event(self, sender, message):
         """Overload this event handler for when new messages are received in message loop.
+        If message is of type dict, message contains a link: {'message': message, 'link': link}.
         Return True to exit message loop.
         """
         print(f'{sender}: {message}')
