@@ -105,6 +105,9 @@ class JeremyTwitter:
     def get_name_from_user(self, user):
         return user['data'][0]['name']
 
+    def get_verified_from_user(self, user):
+        return user['data'][0]['verified']
+
     def get_basic_tweet_info_from_url(self, url):
         tweet = self.get_tweet_from_url(url)
         text = self.get_text_from_tweet(tweet)
@@ -119,11 +122,13 @@ class JeremyTwitter:
         username = self.get_username_from_user(user)
         name = self.get_name_from_user(user)
         profile_image_url = self.get_original_profile_image_url_from_user(user)
+        verified = self.get_verified_from_user(user)
         return {
             'type': url_type,
             'name': name,
             'username': username,
             'profile_image_url': profile_image_url,
             'text': text,
-            'media_url': media_url
+            'media_url': media_url,
+            'verified': verified
         }
