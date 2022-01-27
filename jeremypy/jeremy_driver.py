@@ -3,7 +3,7 @@ import os
 import re
 import requests
 from time import sleep
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
@@ -194,7 +194,8 @@ class MessengerDriver(JeremyDriver):
         """Downloads url to download path and automatically adds the extension. If no path is given,
         it downloads to tempfile_(datetime).(ext) in the current working directory.
         """
-        request = urlopen(url)
+        r = Request(url, headers=headers)
+        request = urlopen(r)
         mime = request.info()['Content-type']
 
         thumbnail_extension = mime.split("/")[-1]
