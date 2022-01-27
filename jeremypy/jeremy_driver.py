@@ -259,13 +259,12 @@ class MessengerDriver(JeremyDriver):
                 sleep(.1)
                 new_messages = self.get_messages()
                 if len(new_messages) == 0:
-                    continue
+                    self.last_error = None
                 if len(new_messages) > 3:  # In the case that all messages are wrongly considered new
                     continue
                 for sender, message in new_messages:
                     if self.new_message_event(sender, message):
                         return
-                self.last_error = None
             except Exception as e:
                 if self.last_error == str(e):
                     if self.duplicate_exception_event(e):
