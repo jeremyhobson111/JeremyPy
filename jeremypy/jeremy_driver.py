@@ -190,7 +190,7 @@ class MessengerDriver(JeremyDriver):
         send_button_xpath = '//*[@aria-label="Press Enter to send"]'
         self.wait_and_click_element_by_xpath(send_button_xpath)
 
-    def download_url(self, url, download_path=None):
+    def download_url(self, url, download_path=None, headers=None):
         """Downloads url to download path and automatically adds the extension. If no path is given,
         it downloads to tempfile_(datetime).(ext) in the current working directory.
         """
@@ -198,7 +198,7 @@ class MessengerDriver(JeremyDriver):
         mime = request.info()['Content-type']
 
         thumbnail_extension = mime.split("/")[-1]
-        r = requests.get(url)
+        r = requests.get(url, headers=headers)
         if not download_path:
             name = os.path.join(os.getcwd(), 'tempfile_'
                                 + datetime.datetime.now().strftime('%Y-%m-%d_%H.%M.%S'))
