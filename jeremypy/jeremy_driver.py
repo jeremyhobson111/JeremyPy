@@ -105,14 +105,14 @@ class MessengerDriver(JeremyDriver):
         if self.driver.current_url.startswith('https://www.messenger.com/login.php'):
             self.login()
 
-    def get_message_with_emojis_or_link(self, element):
-        """Gets message with emojis and/or link"""
+    def get_message_with_emojis_or_links(self, element):
+        """Gets message with emojis and/or links"""
         inner_html = element.get_attribute('innerHTML')
         message = _extract_message_from_inner_html(inner_html)
         link_elements = element.find_elements(By.XPATH, 'span/a')
-        if len(link_elements) > 0:  # Has link
-            link = link_elements[0].text
-            return {'message': message, 'link': link}
+        if len(link_elements) > 0:  # Has links
+            links = [l.text for l in link_elements]
+            return {'message': message, 'links': links}
         return message
 
     def get_messages(self, initial=False):
@@ -134,13 +134,13 @@ class MessengerDriver(JeremyDriver):
                     person = person_elements[0].text
                     message_elements = group.find_elements(By.XPATH, 'div//span/div/div/div/div')
                     if len(message_elements) > 0:  # Has text or is a thumbs up
-                        if len(message_elements[0].find_elements(By.TAG_NAME, 'span')) > 0:  # Has text and emojis/link
-                            message = self.get_message_with_emojis_or_link(message_elements[0])
+                        if len(message_elements[0].find_elements(By.TAG_NAME, 'span')) > 0:  # Has text and emojis/links
+                            message = self.get_message_with_emojis_or_links(message_elements[0])
                         else:  # Only has text or a thumbs up
                             message = message_elements[0].text
                     else:  # Only emojis
                         message_element = group.find_element(By.XPATH, 'div//span/div/div/div')
-                        message = self.get_message_with_emojis_or_link(message_element)
+                        message = self.get_message_with_emojis_or_links(message_element)
                     messages.append((person, message))
                 except NoSuchElementException as e:  # Someone removed a message
                     pass
@@ -222,7 +222,7 @@ class MessengerDriver(JeremyDriver):
 
     def new_message_event(self, sender, message):
         """Overload this event handler for when new messages are received in message loop.
-        If message is of type dict, message contains a link: {'message': message, 'link': link}.
+        If message is of type dict, message contains links: {'message': message, 'links': link}.
         Return True to exit message loop.
         """
         print(f'{sender}: {message}')
