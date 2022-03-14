@@ -190,7 +190,7 @@ class MessengerDriver(JeremyDriver):
         send_button_xpath = '//*[@aria-label="Press Enter to send"]'
         self.wait_and_click_element_by_xpath(send_button_xpath)
 
-    def download_url(self, url, download_path=None, headers=None):
+    def download_url(self, url, download_path=None, headers={}):
         """Downloads url to download path and automatically adds the extension. If no path is given,
         it downloads to tempfile_(datetime).(ext) in the current working directory.
         """
