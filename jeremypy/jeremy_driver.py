@@ -222,10 +222,31 @@ class MessengerDriver(JeremyDriver):
 
     def new_message_event(self, sender, message):
         """Overload this event handler for when new messages are received in message loop.
-        If message is of type dict, message contains links: {'message': message, 'links': link}.
         Return True to exit message loop.
         """
         print(f'{sender}: {message}')
+        return False
+
+    def new_message_from_bot_event(self, sender, message):
+        """Overload this event handler for when new messages are received from the bot in message loop.
+        Return True to exit message loop.
+        """
+        print(f'Bot: {message}')
+        return False
+
+    def new_message_with_links_event(self, sender, message, links):
+        """Overload this event handler for when new messages containing links are received in message loop.
+        message_dict contains links: {'message': message, 'links': link}.
+        Return True to exit message loop.
+        """
+        print(f'{sender}: {message} - {links}')
+        return False
+
+    def new_empty_message_event(self, sender, message):
+        """Overload this event handler for when new empty messages are received in message loop.
+        Return True to exit message loop.
+        """
+        print(f'{sender}: Empty')
         return False
 
     def this_runs_every_loop(self):
@@ -263,7 +284,7 @@ class MessengerDriver(JeremyDriver):
                 if len(new_messages) > 3:  # In the case that all messages are wrongly considered new
                     continue
                 for sender, message in new_messages:
-                    if self.new_message_event(sender, message):
+                    if self._new_message(sender, message):
                         return
             except Exception as e:
                 if self.last_error == str(e):
@@ -274,6 +295,17 @@ class MessengerDriver(JeremyDriver):
                         return
                 self.last_error = str(e)
 
+    def _new_message(self, sender, message):
+        if sender == "You sent":
+            return self.new_message_from_bot_event(sender, message)
+
+        if type(message) == dict:  # has a link
+            return self.new_message_with_links_event(sender, message['message'], message['links'])
+
+        if len(message) == 0:
+            return self.new_empty_message_event(sender, message)
+
+        return self.new_message_event(sender, message)
 
 def _get_list_b_past_end_of_list_a(list_a, list_b):
     """Returns the sublist of list_b that occurs directly after the overlap
