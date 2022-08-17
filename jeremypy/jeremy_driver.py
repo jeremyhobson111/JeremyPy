@@ -15,7 +15,7 @@ from selenium.common.exceptions import (ElementClickInterceptedException,
 import pyperclip
 
 from jeremypy.jeremy_config import JeremyConfig
-from jeremypy.jeremy_exceptions import InvalidConfigError
+from jeremypy.jeremy_exceptions import InvalidConfigError, ChatAreaScrollError
 
 
 class JeremyDriver:
@@ -267,6 +267,14 @@ class MessengerDriver(JeremyDriver):
         """
         return True
 
+    def scroll_to_the_bottom_of_the_chat(self):
+        try:
+            chat_area_xpath = self.find_by_xpath(
+                "//div[@tabindex='-1']/div[@tabindex='-1']/div/div[1]/div/div[1]/div/div")  # Div contains scroll bar
+            self.driver.execute_script('arguments[0].scrollTo(0, 1000000);', chat_area_xpath)
+        except Exception as e:
+            raise ChatAreaScrollError
+
     def message_loop(self):
         """Runs message loop. See *_event methods to overload functionality."""
         sleep(1)
@@ -306,6 +314,7 @@ class MessengerDriver(JeremyDriver):
             return self.new_empty_message_event(sender, message)
 
         return self.new_message_event(sender, message)
+
 
 def _get_list_b_past_end_of_list_a(list_a, list_b):
     """Returns the sublist of list_b that occurs directly after the overlap
