@@ -35,3 +35,12 @@ class InvalidConfigError(Exception):
 
     def __str__(self):
         return f'{self.message}'
+
+
+class ChatAreaScrollError(Exception):
+    def __init__(self, message="Could not scroll in chat area"):
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f'{self.message}'
